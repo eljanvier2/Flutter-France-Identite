@@ -1,3 +1,3 @@
-## 0.0.1
+## 1.0.0
 
 * Initial release: Works fully on android, still needs some research for default values used in iOS devices
