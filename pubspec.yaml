@@ -1,6 +1,6 @@
 name: flutter_france_identite
 description: A flutter package helping with linking the France Identite service with flutter applications.
-version: 1.0.0
+version: 2.0.0
 repository: https://github.com/eljanvier2/Flutter-France-Identite.git
 
 environment:

@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
 ## Additional information
 
-[France Identité website](https://france-identite.gouv.fr/)
+[France Identité website](https://france-identite.gouv.fr/)<br>
 [Flutter External app launcher](https://pub.dev/packages/external_app_launcher)
 
 You are more than welcome to contribute to this package. You can also directly contact me if you want to discuss the package, the france identite app's potential use in your application, missing or current features or flutter in general.

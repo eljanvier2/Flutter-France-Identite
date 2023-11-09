@@ -44,7 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () async {
                 List res = await checkDocumentValidity();
                 if (res[0] == true) {
-                  print(checkCorrespondingInfos(
+                  checkCorrespondingInfos(
                     res[1]['attributes'],
                     "name",
                     'surname',
@@ -52,7 +52,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     'fra',
                     'dd/mm/yyyy',
                     'city',
-                  ));
+                  );
                 }
               },
               child: const Text('Check document validity'),
