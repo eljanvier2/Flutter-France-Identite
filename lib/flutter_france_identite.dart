@@ -1,8 +1,15 @@
 library flutter_france_identite;
 
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart' as http;
+import 'package:file_picker/file_picker.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart';
 
 /// A custom button that opens the France Identité app.
 ///
@@ -206,6 +213,49 @@ Future<int> openFranceIdentite(
         "https://apps.apple.com/fr/app/france-identit%C3%A9/id1590142959",
     openStore: openStore ?? true,
   );
+}
+
+Future<bool> checkDocumentValidity() async {
+  Uri url = Uri(
+      scheme: 'https',
+      host: "idp.france-identite.gouv.fr",
+      path: "/attestation-validator-api/api/validation/v1/check-doc-valid");
+
+  var request = http.MultipartRequest('POST', url);
+
+  request.headers.addAll({
+    "Accept": "application/json, text/plain, */*",
+    "Content-Type": "multipart/form-data",
+    "Origin": "https://idp.france-identite.gouv.fr",
+    "Referer": "https://idp.france-identite.gouv.fr/usager/valider-attest",
+  });
+
+  FilePickerResult? result = await FilePicker.platform
+      .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+
+  if (result != null) {
+    var file = File(result.files.single.path!);
+    var length = await file.length();
+    
+    request.files.add(http.MultipartFile(
+      'file',
+      file.openRead(),
+      length,
+      filename: basename(file.path),
+      contentType: MediaType('application', 'pdf'),
+    ));
+
+    var streamedresponse = await request.send();
+    var response = await http.Response.fromStream(streamedresponse);
+    if (response.statusCode == 200) {
+      var body = jsonDecode(response.body);
+      return body["status"] == "VALID";
+    } else {
+      return false;
+    }
+  } else {
+    return false;
+  }
 }
 
 /// Returns a widget displaying the Marianne logo.
