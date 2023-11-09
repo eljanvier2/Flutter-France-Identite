@@ -215,11 +215,46 @@ Future<int> openFranceIdentite(
   );
 }
 
-Future<bool> checkDocumentValidity() async {
+/// Sends a POST request to the French Identity Provider's document validation API.
+///
+/// The function picks a PDF file from the file system and sends it to the API for validation.
+/// The API checks the validity of the document and returns a response containing the status of the document and its attributes.
+///
+/// The function returns a list containing two elements:
+/// - A boolean indicating whether the document is valid (true if valid, false otherwise)
+/// - A map containing the response from the API if the document is valid, or null if the document is not valid or if no file was picked
+///
+/// [url] is the URL of the API endpoint.
+/// [request] is the HTTP request that will be sent to the API.
+/// [result] is the result of picking a file from the file system.
+/// [file] is the file that will be sent to the API.
+/// [length] is the length of the file.
+/// [streamedresponse] is the response from the API as a stream.
+/// [response] is the response from the API as a string.
+///
+/// The function handles errors by returning [false, null] if the API returns a non-200 status code or if no file is picked.
+///
+/// Example usage:
+/// ```dart
+/// var result = await checkDocumentValidity();
+/// if (result[0]) {
+///   print('Document is valid');
+///   print('Response from API: ${result[1]}');
+/// } else {
+///   print('Document is not valid');
+/// }
+/// ```
+///
+/// Note: This function requires the 'file_picker' package for picking files, and the 'http' package for sending the HTTP request.
+Future<List> checkDocumentValidity() async {
   Uri url = Uri(
-      scheme: 'https',
-      host: "idp.france-identite.gouv.fr",
-      path: "/attestation-validator-api/api/validation/v1/check-doc-valid");
+    scheme: 'https',
+    host: "idp.france-identite.gouv.fr",
+    path: "/attestation-validator-api/api/validation/v1/check-doc-valid",
+    queryParameters: {
+      'all-attributes': 'true',
+    },
+  );
 
   var request = http.MultipartRequest('POST', url);
 
@@ -236,7 +271,7 @@ Future<bool> checkDocumentValidity() async {
   if (result != null) {
     var file = File(result.files.single.path!);
     var length = await file.length();
-    
+
     request.files.add(http.MultipartFile(
       'file',
       file.openRead(),
@@ -249,13 +284,122 @@ Future<bool> checkDocumentValidity() async {
     var response = await http.Response.fromStream(streamedresponse);
     if (response.statusCode == 200) {
       var body = jsonDecode(response.body);
-      return body["status"] == "VALID";
+      return [body["status"] == "VALID", body];
     } else {
-      return false;
+      return [false, null];
     }
   } else {
-    return false;
+    return [false, null];
   }
+}
+
+/// Verifies the identity of a user by checking the validity of a document and comparing the information in the document with the provided information.
+///
+/// The function takes a set of information (name, familyName, gender, nationality, birthdate, birthplace),
+/// and checks if the information in a document matches the provided information.
+///
+/// The function returns a boolean indicating whether the identity is verified (true if it is verified, false otherwise).
+///
+/// [name] is the given name to be checked.
+/// [familyName] is the family name to be checked.
+/// [gender] is the gender to be checked.
+/// [nationality] is the nationality to be checked.
+/// [birthdate] is the birthdate to be checked.
+/// [birthplace] is the birthplace to be checked.
+///
+/// The function handles errors by returning false if the document is not valid or if the information does not match.
+///
+/// Example usage:
+/// ```dart
+/// var isVerified = await verifyIdentity('John', 'Doe', 'male', 'French', '2000-01-01', 'Paris');
+/// if (isVerified) {
+///   print('Identity is verified');
+/// } else {
+///   print('Identity is not verified');
+/// }
+/// ```
+///
+/// Note: This function requires the 'checkDocumentValidity' and 'checkCorrespondingInfos' functions.
+Future<bool> verifyIdentity(
+  String name,
+  String familyName,
+  String gender,
+  String nationality,
+  String birthdate,
+  String birthplace,
+) async {
+  var res = await checkDocumentValidity();
+  if (res[0]) {
+    return checkCorrespondingInfos(
+      res[1],
+      name,
+      familyName,
+      gender,
+      nationality,
+      birthdate,
+      birthplace,
+    );
+  }
+  return false;
+}
+
+/// Checks if the information in the response body matches the provided information.
+///
+/// The function takes a response body and a set of information (name, familyName, gender, nationality, birthdate, birthplace),
+/// and checks if the information in the response body matches the provided information.
+///
+/// The function returns a boolean indicating whether the information matches (true if it matches, false otherwise).
+///
+/// [responseBody] is the response body from the API.
+/// [name] is the given name to be checked.
+/// [familyName] is the family name to be checked.
+/// [gender] is the gender to be checked.
+/// [nationality] is the nationality to be checked.
+/// [birthdate] is the birthdate to be checked.
+/// [birthplace] is the birthplace to be checked.
+///
+/// The function handles encoding issues by decoding the strings from the response body from Windows-1252 to UTF-8.
+///
+/// Example usage:
+/// ```dart
+/// var responseBody = // get response body from API
+/// var isValid = checkCorrespondingInfos(responseBody, 'John', 'Doe', 'male', 'French', '2000-01-01', 'Paris');
+/// if (isValid) {
+///   print('Information matches');
+/// } else {
+///   print('Information does not match');
+/// }
+/// ```
+///
+/// Note: This function requires the 'dart:convert' package for encoding and decoding strings.
+bool checkCorrespondingInfos(
+  dynamic responseBody,
+  String name,
+  String familyName,
+  String gender,
+  String nationality,
+  String birthdate,
+  String birthplace,
+) {
+  String decodeWindows1252String(String input) {
+    var bytes = latin1.encode(input);
+    return utf8.decode(bytes, allowMalformed: true);
+  }
+
+  bool valid =
+      decodeWindows1252String(responseBody["givenName"]).toLowerCase() ==
+              name.toLowerCase() &&
+          decodeWindows1252String(responseBody["familyName"]).toLowerCase() ==
+              familyName.toLowerCase() &&
+          decodeWindows1252String(responseBody["gender"]).toLowerCase() ==
+              gender.toLowerCase() &&
+          decodeWindows1252String(responseBody["nationality"]).toLowerCase() ==
+              nationality.toLowerCase() &&
+          decodeWindows1252String(responseBody["birthDate"]) == birthdate &&
+          decodeWindows1252String(responseBody["birthPlace"])
+              .toLowerCase()
+              .contains(birthplace.toLowerCase());
+  return valid;
 }
 
 /// Returns a widget displaying the Marianne logo.

@@ -7,17 +7,23 @@ This package offers utils to help implement France Identité for identity verifi
 
 This package contains:
 
-- A  **FranceIdentiteButton()**  *Widget*: a customizable button that opens the France Identité app.
+- A  **FranceIdentiteButton()** Widget: *a customizable button that opens the France Identité app.*
 
--  A **isFranceIdentiteInstalled()**  *Function*: a function returning whether the France Identité app is installed on the device
+-  A **isFranceIdentiteInstalled()**  Function: *a function returning whether the France Identité app is installed on the device.*
 
--  A **openFranceIdentite()**  *Function*: a function opening the France Identité app or it's page on the device's store.
+-  A **openFranceIdentite()** Function: *a function opening the France Identité app or it's page on the device's store.*
 
--  A **marianneLogo()**  *Function*: a function returning a marianne logo widget with modifiable dimensions
+- A **verifyIdentity()** Function: *a function implementing the checkDocumentValidity() and checkCorrespondingInfos() functions to verify a user's identity.*
 
--  A **franceIdentiteLogo()**  *Function*: a function returning a france identite logo widget with modifiable dimensions
+- A **checkDocumentValidity()** Function: *a function returning whether a .pdf file picked inside the device's files is a valid identity certificate.*
 
--  A **franceIdentiteBlue**  *Color*: a Color corresponding to the blue used in the France Identité app.
+- A **checkCorrespondingInfos()** Function: *a function returning whether the infos given by the user correspond to the infos inside the response's body returned by the checkDocumentValidity() function.*
+
+-  A **marianneLogo()**  Function: *a function returning a marianne logo widget with modifiable dimensions.*
+
+-  A **franceIdentiteLogo()**  Function: *a function returning a france identite logo widget with modifiable dimensions.*
+
+-  A **franceIdentiteBlue**  Color: *a Color corresponding to the blue used in the France Identité app.*
 
 **Working default values**
 
