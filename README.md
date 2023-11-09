@@ -31,7 +31,9 @@ This package contains:
 |--- | ------- | --- |
 | opening store | Yes | Yes |
 | opening app | Yes | Not yet |
-| checking if<br> app installed | Yes | Not yet |
+| checking if<br>app installed | Yes | Not yet |
+| verifying doc<br>validity | Yes | Yes |
+| checking <br>corresponding infos | Yes | Yes |
 
 ## Getting started
 
@@ -80,39 +82,26 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const FranceIdentiteButton(),
-            const SizedBox(height: 50),
-            TextButton(
-              child: const Text("Press to open France Identite App"),
-              onPressed: () => openFranceIdentite(),
+            const FranceIdentiteButton(
+              logoTrailing: true,
             ),
-            const SizedBox(height: 50),
+            const SizedBox(height: 20),
             TextButton(
-              child: const Text(
-                  "Press to open France Identite App with a custom scheme"),
-              onPressed: () =>
-                  openFranceIdentite(iosUrlScheme: "franceidentite://"),
-            ),
-            const SizedBox(height: 50),
-            TextButton(
-              child: const Text(
-                  "Press to open France Identite App with a custom package name"),
-              onPressed: () =>
-                  openFranceIdentite(androidPackageName: "franceidentite"),
-            ),
-            const SizedBox(height: 50),
-            TextButton(
-              child: const Text(
-                  "Press to check whether France identite is installed on device"),
               onPressed: () async {
-                final bool isInstalled = await isFranceIdentiteInstalled();
-                // ignore: use_build_context_synchronously
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("France Identite is installed: $isInstalled"),
-                  ),
-                );
+                List res = await checkDocumentValidity();
+                if (res[0] == true) {
+                  print(checkCorrespondingInfos(
+                    res[1]['attributes'],
+                    "name",
+                    'surname',
+                    'x',
+                    'fra',
+                    'dd/mm/yyyy',
+                    'city',
+                  ));
+                }
               },
+              child: const Text('Check document validity'),
             ),
           ],
         ),
