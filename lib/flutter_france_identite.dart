@@ -336,7 +336,7 @@ Future<bool> verifyIdentity(
   var res = await checkDocumentValidity(sharedFile);
   if (res[0]) {
     return checkCorrespondingInfos(
-      res[1],
+      res[1]['attributes'],
       name,
       familyName,
       gender,

@@ -21,3 +21,7 @@
 ## 2.1.3
 
 * Fixed verifyIdentity function to handle changes made in previous versions to information checking and shared file handling
+
+## 2.1.4
+
+* Fixed wrong value passed inside verifyIdentity
