@@ -15,7 +15,7 @@ This package contains:
 
 - A **verifyIdentity()** Function: *a function implementing the checkDocumentValidity() and checkCorrespondingInfos() functions to verify a user's identity.*
 
-- A **checkDocumentValidity()** Function: *a function returning whether a .pdf file picked inside the device's files is a valid identity certificate.*
+- A **checkDocumentValidity()** Function: *a function returning whether a .pdf file picked inside the device's files or shared by another app is a valid identity certificate.*
 
 - A **checkCorrespondingInfos()** Function: *a function returning whether the infos given by the user correspond to the infos inside the response's body returned by the checkDocumentValidity() function.*
 
@@ -41,11 +41,17 @@ This plugin is a work in progress. It is by no means linked to the French govern
 
 This plugin uses the external_app_launcher package to streamline operations with France Identité.
 
+If you intend to handle pdf sharing please follow the setup instructions of the **flutter_sharing_intent** package [here](https://pub.dev/packages/flutter_sharing_intent)
+
 ## Code Illustration
 
 ```
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_france_identite/flutter_france_identite.dart';
+import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
+import 'package:flutter_sharing_intent/model/sharing_file.dart';
 
 void main() {
   runApp(const FranceIdentiteTestApp());
@@ -75,6 +81,38 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late StreamSubscription intentDataStreamSubscription;
+  List<SharedFile>? list;
+
+  @override
+  void initState() {
+    super.initState();
+    intentDataStreamSubscription = FlutterSharingIntent.instance
+        .getMediaStream()
+        .listen((List<SharedFile> value) {
+      setState(() {
+        list = value;
+      });
+    }, onError: (err) {
+    });
+
+    // For sharing images coming from outside the app while the app is closed
+    FlutterSharingIntent.instance
+        .getInitialSharing()
+        .then((List<SharedFile> value) {
+      print("Shared: getInitialMedia ${value.map((f) => f.value).join(",")}");
+      setState(() {
+        list = value;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    intentDataStreamSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,9 +126,9 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () async {
-                List res = await checkDocumentValidity();
+                List res = await checkDocumentValidity(list![0]);
                 if (res[0] == true) {
-                  print(checkCorrespondingInfos(
+                  checkCorrespondingInfos(
                     res[1]['attributes'],
                     "name",
                     'surname',
@@ -98,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     'fra',
                     'dd/mm/yyyy',
                     'city',
-                  ));
+                  );
                 }
               },
               child: const Text('Check document validity'),
@@ -109,6 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
+
 ```
 
 ## Additional information

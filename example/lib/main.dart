@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_france_identite/flutter_france_identite.dart';
+import 'package:flutter_sharing_intent/flutter_sharing_intent.dart';
+import 'package:flutter_sharing_intent/model/sharing_file.dart';
 
 void main() {
   runApp(const FranceIdentiteTestApp());
@@ -29,6 +33,36 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  late StreamSubscription intentDataStreamSubscription;
+  List<SharedFile>? list;
+
+  @override
+  void initState() {
+    super.initState();
+    intentDataStreamSubscription = FlutterSharingIntent.instance
+        .getMediaStream()
+        .listen((List<SharedFile> value) {
+      setState(() {
+        list = value;
+      });
+    }, onError: (err) {});
+
+    // For sharing images coming from outside the app while the app is closed
+    FlutterSharingIntent.instance
+        .getInitialSharing()
+        .then((List<SharedFile> value) {
+      setState(() {
+        list = value;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    intentDataStreamSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
             const SizedBox(height: 20),
             TextButton(
               onPressed: () async {
-                List res = await checkDocumentValidity();
+                List res = await checkDocumentValidity(list![0]);
                 if (res[0] == true) {
                   checkCorrespondingInfos(
                     res[1]['attributes'],

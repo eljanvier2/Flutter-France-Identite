@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:external_app_launcher/external_app_launcher.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sharing_intent/model/sharing_file.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
@@ -246,7 +247,7 @@ Future<int> openFranceIdentite(
 /// ```
 ///
 /// Note: This function requires the 'file_picker' package for picking files, and the 'http' package for sending the HTTP request.
-Future<List> checkDocumentValidity() async {
+Future<List> checkDocumentValidity(SharedFile? sharedFile) async {
   Uri url = Uri(
     scheme: 'https',
     host: "idp.france-identite.gouv.fr",
@@ -265,11 +266,15 @@ Future<List> checkDocumentValidity() async {
     "Referer": "https://idp.france-identite.gouv.fr/usager/valider-attest",
   });
 
-  FilePickerResult? result = await FilePicker.platform
-      .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
-
-  if (result != null) {
-    var file = File(result.files.single.path!);
+  if (sharedFile == null) {
+    FilePickerResult? result = await FilePicker.platform
+        .pickFiles(type: FileType.custom, allowedExtensions: ['pdf']);
+    if (result != null) {
+      sharedFile = SharedFile(value: result.files.single.path!);
+    }
+  }
+  if (sharedFile != null) {
+    var file = File(sharedFile.value!);
     var length = await file.length();
 
     request.files.add(http.MultipartFile(
@@ -279,7 +284,6 @@ Future<List> checkDocumentValidity() async {
       filename: basename(file.path),
       contentType: MediaType('application', 'pdf'),
     ));
-
     var streamedresponse = await request.send();
     var response = await http.Response.fromStream(streamedresponse);
     if (response.statusCode == 200) {
@@ -328,7 +332,7 @@ Future<bool> verifyIdentity(
   String birthdate,
   String birthplace,
 ) async {
-  var res = await checkDocumentValidity();
+  var res = await checkDocumentValidity(null);
   if (res[0]) {
     return checkCorrespondingInfos(
       res[1],
