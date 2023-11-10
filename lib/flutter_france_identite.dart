@@ -325,14 +325,15 @@ Future<List> checkDocumentValidity(SharedFile? sharedFile) async {
 ///
 /// Note: This function requires the 'checkDocumentValidity' and 'checkCorrespondingInfos' functions.
 Future<bool> verifyIdentity(
-  String name,
-  String familyName,
-  String gender,
-  String nationality,
-  String birthdate,
-  String birthplace,
+  SharedFile? sharedFile,
+  String? name,
+  String? familyName,
+  String? gender,
+  String? nationality,
+  String? birthdate,
+  String? birthplace,
 ) async {
-  var res = await checkDocumentValidity(null);
+  var res = await checkDocumentValidity(sharedFile);
   if (res[0]) {
     return checkCorrespondingInfos(
       res[1],

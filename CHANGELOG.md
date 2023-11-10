@@ -17,3 +17,7 @@
 ## 2.1.2
 
 * Now handling optionnal parameters in information comparaison to allow not checking every information
+
+## 2.1.3
+
+* Fixed verifyIdentity function to handle changes made in previous versions to information checking and shared file handling
