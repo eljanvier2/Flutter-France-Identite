@@ -378,31 +378,50 @@ Future<bool> verifyIdentity(
 /// Note: This function requires the 'dart:convert' package for encoding and decoding strings.
 bool checkCorrespondingInfos(
   dynamic responseBody,
-  String name,
-  String familyName,
-  String gender,
-  String nationality,
-  String birthdate,
-  String birthplace,
+  String? name,
+  String? familyName,
+  String? gender,
+  String? nationality,
+  String? birthdate,
+  String? birthplace,
 ) {
   String decodeWindows1252String(String input) {
     var bytes = latin1.encode(input);
     return utf8.decode(bytes, allowMalformed: true);
   }
 
-  bool valid =
-      decodeWindows1252String(responseBody["givenName"]).toLowerCase() ==
-              name.toLowerCase() &&
-          decodeWindows1252String(responseBody["familyName"]).toLowerCase() ==
-              familyName.toLowerCase() &&
-          decodeWindows1252String(responseBody["gender"]).toLowerCase() ==
-              gender.toLowerCase() &&
-          decodeWindows1252String(responseBody["nationality"]).toLowerCase() ==
-              nationality.toLowerCase() &&
-          decodeWindows1252String(responseBody["birthDate"]) == birthdate &&
-          decodeWindows1252String(responseBody["birthPlace"])
-              .toLowerCase()
-              .contains(birthplace.toLowerCase());
+  bool valid = true;
+
+  if (name != null && name.isNotEmpty) {
+    valid = valid &&
+        decodeWindows1252String(responseBody["givenName"]).toLowerCase() ==
+            name.toLowerCase();
+  }
+  if (familyName != null && familyName.isNotEmpty) {
+    valid = valid &&
+        decodeWindows1252String(responseBody["familyName"]).toLowerCase() ==
+            familyName.toLowerCase();
+  }
+  if (gender != null && gender.isNotEmpty) {
+    valid = valid &&
+        decodeWindows1252String(responseBody["gender"]).toLowerCase() ==
+            gender.toLowerCase();
+  }
+  if (nationality != null && nationality.isNotEmpty) {
+    valid = valid &&
+        decodeWindows1252String(responseBody["nationality"]).toLowerCase() ==
+            nationality.toLowerCase();
+  }
+  if (birthdate != null && birthdate.isNotEmpty) {
+    valid = valid &&
+        decodeWindows1252String(responseBody["birthDate"]) == birthdate;
+  }
+  if (birthplace != null && birthplace.isNotEmpty) {
+    valid = valid &&
+        decodeWindows1252String(responseBody["birthPlace"])
+            .toLowerCase()
+            .contains(birthplace.toLowerCase());
+  }
   return valid;
 }
 

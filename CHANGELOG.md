@@ -13,3 +13,7 @@
 ## 2.1.1
 
 * Fixed potential conflicts caused by the version of the http package used
+
+## 2.1.2
+
+* Now handling optionnal parameters in information comparaison to allow not checking every information
