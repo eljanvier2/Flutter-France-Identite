@@ -9,3 +9,7 @@
 ## 2.1.0
 
 * Now handling shared files coming from other app. The intended use case is to allow the use of the 'Partager' button after generating an identity certificate inside the France Identité app to share it directly to your app and be able t verify it without needing to use the file picker.
+
+## 2.1.1
+
+* Fixed potential conflicts caused by the version of the http package used
